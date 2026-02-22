@@ -4,14 +4,14 @@ import os
 class SimpleSIS:
     def __init__(self):
         self.files = {
-            'college': 'colleges.csv',
-            'program': 'programs.csv',
-            'student': 'students.csv'
+            'College': 'colleges.csv',
+            'Program': 'programs.csv',
+            'Student': 'students.csv'
         }
         self.headers = {
-            'college': ['code', 'name'],
-            'program': ['code', 'name', 'college_code'],
-            'student': ['id', 'firstname', 'lastname', 'program_code', 'year', 'gender']
+            'College': ['Code', 'Name'],
+            'Program': ['Code', 'Name', 'College_Code'],
+            'Student': ['ID', 'Firstname', 'Lastname', 'Program_Code', 'Year', 'Gender']
         }
         self._initialize_files()
 
@@ -45,10 +45,10 @@ class SimpleSIS:
             return False
         
         # Referential Integrity Check: Student must belong to an existing Program
-        if entity == 'student':
-            programs = self._read_data('program')
-            if not any(p['code'].lower() == data['program_code'].lower() for p in programs):
-                print(f"\n[!] Error: Program Code '{data['program_code']}' does not exist.")
+        if entity == 'Student':
+            programs = self._read_data('Program')
+            if not any(p['Code'].lower() == data['Program_Code'].lower() for p in programs):
+                print(f"\n[!] Error: Program Code '{data['Program_Code']}' Does not exist.")
                 return False
 
         current_data.append(data)
@@ -117,7 +117,7 @@ def main_menu():
 
         if choice == '4': break
         
-        entity = {'1': 'college', '2': 'program', '3': 'student'}.get(choice)
+        entity = {'1': 'College', '2': 'Program', '3': 'Student'}.get(choice)
         if not entity: continue
         
         while True:
