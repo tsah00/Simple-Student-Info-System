@@ -16,7 +16,7 @@ class SimpleSIS:
         self._initialize_files()
 
     def _initialize_files(self):
-        """Creates the CSV files with headers if they don't exist."""
+        """Creates CSV files with headers if they don't exist."""
         for key, filename in self.files.items():
             if not os.path.exists(filename):
                 with open(filename, 'w', newline='') as f:
@@ -33,23 +33,33 @@ class SimpleSIS:
             writer.writeheader()
             writer.writerows(data)
 
+    # --- CRUDL Operations ---
+
     def create(self, entity, data):
-        """Adds a new record. Checks for ID uniqueness."""
         current_data = self._read_data(entity)
-        pk = self.headers[entity][0] # First column is usually the ID/Code
+        pk = self.headers[entity][0]
         
-        if any(row[pk] == data[pk] for row in current_data):
-            print(f"Error: Record with {pk} {data[pk]} already exists.")
+        # Check if Primary Key already exists (Case-insensitive)
+        if any(row[pk].lower() == data[pk].lower() for row in current_data):
+            print(f"\n[!] Error: {pk} '{data[pk]}' already exists.")
             return False
         
+        # Referential Integrity Check: Student must belong to an existing Program
+        if entity == 'student':
+            programs = self._read_data('program')
+            if not any(p['code'].lower() == data['program_code'].lower() for p in programs):
+                print(f"\n[!] Error: Program Code '{data['program_code']}' does not exist.")
+                return False
+
         current_data.append(data)
         self._write_data(entity, current_data)
-        print(f"{entity.capitalize()} added successfully.")
+        print(f"\n[+] {entity.capitalize()} added successfully.")
+        return True
 
     def list_all(self, entity, sort_by=None):
         data = self._read_data(entity)
-        if sort_by:
-            data.sort(key=lambda x: x.get(sort_by, ''))
+        if sort_by and sort_by in self.headers[entity]:
+            data.sort(key=lambda x: x.get(sort_by, '').lower())
         return data
 
     def search(self, entity, field, value):
@@ -61,41 +71,89 @@ class SimpleSIS:
         pk = self.headers[entity][0]
         updated = False
         for row in data:
-            if row[pk] == pk_value:
-                row.update(new_data)
+            if row[pk].lower() == pk_value.lower():
+                row.update({k: v for k, v in new_data.items() if v}) # Only update non-empty fields
                 updated = True
         if updated:
             self._write_data(entity, data)
-            print("Update successful.")
+            print("\n[+] Update successful.")
         else:
-            print("Record not found.")
+            print("\n[!] Record not found.")
+        return updated
 
     def delete(self, entity, pk_value):
         data = self._read_data(entity)
         pk = self.headers[entity][0]
-        new_data = [row for row in data if row[pk] != pk_value]
-        if len(new_data) < len(data):
-            self._write_data(entity, new_data)
-            print("Deletion successful.")
-        else:
-            print("Record not found.")
+        initial_count = len(data)
+        data = [row for row in data if row[pk].lower() != pk_value.lower()]
+        
+        if len(data) < initial_count:
+            self._write_data(entity, data)
+            print("\n[-] Deletion successful.")
+            return True
+        print("\n[!] Record not found.")
+        return False
 
-sis = SimpleSIS()
+# --- UI Helper Functions ---
 
-sis.create('college', {'code': 'CCS', 'name': 'College of Computer Studies'})
-sis.create('program', {'code': 'BSCS', 'name': 'Bachelor of Science in Computer Science', 'college_code': 'CCS'})
-sis.create('student', {
-    'id': '2023-4004', 
-    'firstname': 'Cha Jane', 
-    'lastname': 'Torres', 
-    'program_code': 'BSCS', 
-    'year': '2', 
-    'gender': 'Female'
-})
+def print_table(data, headers):
+    if not data:
+        print("\n(No records found)")
+        return
+    print("\n" + " | ".join([h.upper().ljust(15) for h in headers]))
+    print("-" * (len(headers) * 18))
+    for row in data:
+        print(" | ".join([str(row[h]).ljust(15) for h in headers]))
 
-print("\nSorted Student List:")
-for s in sis.list_all('student', sort_by='lastname'):
-    print(f"{s['id']}: {s['lastname']}, {s['firstname']}")
+def main_menu():
+    sis = SimpleSIS()
+    while True:
+        print("\n=== STUDENT INFORMATION SYSTEM ===")
+        print("1. Colleges")
+        print("2. Programs")
+        print("3. Students")
+        print("4. Exit")
+        choice = input("Select Category: ")
 
-print("\nSearch Result (Firstname 'Cha'):")
-print(sis.search('student', 'firstname', 'Cha'))
+        if choice == '4': break
+        
+        entity = {'1': 'college', '2': 'program', '3': 'student'}.get(choice)
+        if not entity: continue
+        
+        while True:
+            print(f"\n--- {entity.upper()} MENU ---")
+            print("1. Add New")
+            print("2. List All")
+            print("3. Search")
+            print("4. Update")
+            print("5. Delete")
+            print("6. Back")
+            
+            act = input("Action: ")
+            if act == '6': break
+
+            if act == '1':
+                new_row = {f: input(f"Enter {f}: ") for f in sis.headers[entity]}
+                sis.create(entity, new_row)
+            
+            elif act == '2':
+                sort_f = input(f"Sort by {sis.headers[entity]} (Enter to skip): ")
+                print_table(sis.list_all(entity, sort_by=sort_f), sis.headers[entity])
+            
+            elif act == '3':
+                field = input(f"Field to search {sis.headers[entity]}: ")
+                val = input("Search term: ")
+                print_table(sis.search(entity, field, val), sis.headers[entity])
+            
+            elif act == '4':
+                pk_val = input(f"Enter {sis.headers[entity][0]} to update: ")
+                print("(Leave blank to keep existing value)")
+                updates = {f: input(f"New {f}: ") for f in sis.headers[entity][1:]}
+                sis.update(entity, pk_val, updates)
+            
+            elif act == '5':
+                pk_val = input(f"Enter {sis.headers[entity][0]} to delete: ")
+                sis.delete(entity, pk_val)
+
+if __name__ == "__main__":
+    main_menu()
