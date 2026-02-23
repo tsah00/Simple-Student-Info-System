@@ -24,7 +24,7 @@ To verify the system logic, it is recommended to add data in this specific order
 2. **Add Program**: 
    - Code: `BSCS` | Name: `Computer Science` | College: `CCS`
 3. **Add Student**: 
-   - ID: `2024-0001` | Name: `Cha Jane Torres` | Program: `BSCS` | Year: `2`
+   - ID: `2023-4004` | Name: `Cha Jane Torres` | Program: `BSCS` | Year: `2`
 
 ## File Structure
 - `main.py`: Main application logic.
