@@ -1,29 +1,31 @@
-# Simple Student Information System (SIS)
+ # Simple Student Information System (SIS)
 
-A Python-based Command Line Interface (CLI) application designed to manage academic records using a flat-file database approach.
+A robust Command Line Interface (CLI) application for managing academic records. This system implements full CRUDL functionality and ensures data persistence through CSV file handling.
 
 ## Features
-- **Full CRUDL Implementation**: Create, Read, Update, Delete, and List operations for Colleges, Programs, and Students.
-- **Data Persistence**: Uses `csv` files to ensure data is saved permanently on the local disk.
-- **Relational Integrity**:
-  - Validates that a `Student` can only be enrolled in a `Program` that already exists.
-  - Prevents duplicate Primary Keys (IDs and Codes) across all tables.
-- **Search & Sort**: 
-  - Search functionality filtered by specific fields (e.g., search by Firstname).
-  - Alphabetical sorting for organized data viewing.
-- **Formatted UI**: Uses text-alignment logic to display CSV data in a clean, readable table format.
+- **Full CRUDL Operations**: 
+  - **Create**: Add new Colleges, Programs, and Students.
+  - **Read/Search**: Filter records by specific fields (e.g., search by Lastname).
+  - **Update**: Modify existing records with partial update support.
+  - **Delete**: Securely remove records with a user confirmation prompt.
+  - **List**: Display all records in a neatly formatted table with alphabetical sorting.
+- **Relational Integrity**: Prevents orphan records by validating Program and College links.
+- **Data Persistence**: All data is stored in localized `.csv` files.
 
 ## Tech Stack
 - **Language**: Python 3.x
-- **Storage**: CSV (Comma Separated Values)
-- **Libraries**: `csv`, `os` (Standard Libraries)
+- **Storage**: CSV (Flat-file database)
+
+## Testing Guide
+To verify the system logic, it is recommended to add data in this specific order:
+
+1. **Add College**: 
+   - Code: `CCS` | Name: `College of Computer Studies`
+2. **Add Program**: 
+   - Code: `BSCS` | Name: `Computer Science` | College: `CCS`
+3. **Add Student**: 
+   - ID: `2024-0001` | Name: `Cha Jane Torres` | Program: `BSCS` | Year: `2`
 
 ## File Structure
-- `main.py`: The core application logic and UI.
-- `students.csv`: Stores student profiles.
-- `programs.csv`: Stores academic program details.
-- `colleges.csv`: Stores college department information.
-
-## How to Use
-1. Run the program: `python main.py`
-2. **Important**: Add a **College** first, then a **Program**, before adding a **Student** to maintain relational links.
+- `main.py`: Main application logic.
+- `colleges.csv`, `programs.csv`, `students.csv`: Data storage files.
