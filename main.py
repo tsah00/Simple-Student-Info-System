@@ -153,7 +153,12 @@ def main_menu():
             
             elif act == '5':
                 pk_val = input(f"Enter {sis.headers[entity][0]} to delete: ")
-                sis.delete(entity, pk_val)
+                # New Confirmation Logic
+                confirm = input(f"Are you sure you want to delete {pk_val}? (y/n): ")
+                if confirm.lower() == 'y':
+                    sis.delete(entity, pk_val)
+                else:
+                    print("Deletion cancelled.")
 
 if __name__ == "__main__":
     main_menu()
