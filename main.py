@@ -33,18 +33,14 @@ class SimpleSIS:
             writer.writeheader()
             writer.writerows(data)
 
-    # --- CRUDL Operations ---
-
     def create(self, entity, data):
         current_data = self._read_data(entity)
         pk = self.headers[entity][0]
         
-        # Check if Primary Key already exists (Case-insensitive)
         if any(row[pk].lower() == data[pk].lower() for row in current_data):
             print(f"\n[!] Error: {pk} '{data[pk]}' already exists.")
             return False
         
-        # Referential Integrity Check: Student must belong to an existing Program
         if entity == 'Student':
             programs = self._read_data('Program')
             if not any(p['Code'].lower() == data['Program_Code'].lower() for p in programs):
@@ -72,7 +68,7 @@ class SimpleSIS:
         updated = False
         for row in data:
             if row[pk].lower() == pk_value.lower():
-                row.update({k: v for k, v in new_data.items() if v}) # Only update non-empty fields
+                row.update({k: v for k, v in new_data.items() if v}) 
                 updated = True
         if updated:
             self._write_data(entity, data)
@@ -93,8 +89,6 @@ class SimpleSIS:
             return True
         print("\n[!] Record not found.")
         return False
-
-# --- UI Helper Functions ---
 
 def print_table(data, headers):
     if not data:
@@ -153,7 +147,6 @@ def main_menu():
             
             elif act == '5':
                 pk_val = input(f"Enter {sis.headers[entity][0]} to delete: ")
-                # New Confirmation Logic
                 confirm = input(f"Are you sure you want to delete {pk_val}? (y/n): ")
                 if confirm.lower() == 'y':
                     sis.delete(entity, pk_val)
